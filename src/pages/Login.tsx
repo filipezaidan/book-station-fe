@@ -1,76 +1,104 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Link } from "@tanstack/react-router"
-import { MountainIcon } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "@tanstack/react-router";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
+interface LoginFormInputs {
+  email: string;
+  password: string;
+}
 
+export function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<LoginFormInputs>();
 
+  const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
+    try {
+      await login(data.email, data.password);
+      toast.success("Login successful");
+      navigate({ to: "/" });
+    } catch (error) {
+      toast.error("Login failed");
+      console.error("Login failed:", error);
+      setError("root", {
+        type: "manual",
+        message: "Invalid email or password",
+      });
+    }
+  };
 
-export const Login = () => {
-    return(
-
-        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-md space-y-8">
-        <div>
-          <Link href="#" className="flex justify-center">
-            <MountainIcon className="h-12 w-12" />
-          </Link>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-foreground">
-            
-          </h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="#" className="font-medium text-primary hover:text-primary/90">
-              Sign up
-            </Link>
-          </p>
-        </div>
-        <form className="space-y-6" action="#" method="POST">
-          <div>
-            <Label htmlFor="email" className="block text-sm font-medium text-foreground">
-              Email address
-            </Label>
-            <div className="mt-1">
+  return (
+    <div className="w-full h-screen lg:grid lg:grid-cols-2 ">
+      <div className="hidden lg:block bg-primary"></div>
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold">Login</h1>
+            <p className="text-balance text-muted-foreground">
+              Enter your email below to login to your account
+            </p>
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
-                autoComplete="email"
-                required
-                className="block w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder-muted-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
-                placeholder="you@example.com"
+                placeholder="m@example.com"
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /\S+@\S+\.\S+/,
+                    message: "Invalid email address",
+                  },
+                })}
               />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
             </div>
-          </div>
-          <div>
-            <Label htmlFor="password" className="block text-sm font-medium text-foreground">
-              Password
-            </Label>
-            <div className="mt-1">
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
-                name="password"
                 type="password"
-                autoComplete="current-password"
-                required
-                className="block w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder-muted-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
                 placeholder="Password"
+                {...register("password", {
+                  required: "Password is required",
+                })}
               />
+              {errors.password && (
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
-          </div>
-          <div>
-            <Button
-              type="submit"
-              className="flex w-full justify-center rounded-md bg-primary py-2 px-4 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            >
-              Sign in
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Logging in..." : "Login"}
             </Button>
-          </div>
-        </form>
+          </form>
+          {errors.root && (
+            <p className="text-sm text-red-500 text-center">
+              {errors.root.message}
+            </p>
+          )}
+          {/* <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{" "}
+            <a href="#" className="underline">
+              Sign up
+            </a>
+          </div> */}
+        </div>
       </div>
     </div>
-  )
-    
-    
+  );
 }
