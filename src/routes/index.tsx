@@ -1,9 +1,17 @@
-import { Dashboard } from '@/pages/Dashboard'
-import { Login } from '@/pages/Login'
-import { createFileRoute } from '@tanstack/react-router'
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
+export const Route = createFileRoute("/")({
+  component: Index,
+});
 
-export const Route = createFileRoute('/')({
-  component: Dashboard,
-})
+function Index() {
+  const { isAuthenticated } = useAuth();
 
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" />;
+  }
+
+  return <Navigate to="/login" />;
+}
